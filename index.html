@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2 QR Kod İçerik Karşılaştırma</title>
+<style>
+  body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+  #cameraButton { margin: 20px auto; padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius:5px; cursor:pointer; }
+  #cameraButton:hover { background-color: #45a049; }
+  #reader { width: 100%; max-width: 500px; margin: 0 auto; display: none; }
+  #okButton { display:none; padding: 8px 16px; margin-top:10px; background:#2196F3; color:white; border:none; border-radius:5px; cursor:pointer; }
+  #okButton:hover { background:#1976D2; }
+  #message { font-weight:bold; margin-top:15px; }
+  .success { color:green; }
+  .error { color:red; }
+</style>
+</head>
+<body>
+
+<h1>2 QR Kod İçerik Karşılaştırma</h1>
+<p>İlk QR kodu tarayın, ardından ikinciyi tarayın. İçerikleri karşılaştırılır.</p>
+
+<button id="cameraButton" onclick="startScanning()">Kamera Aç</button>
+
+<div id="reader"></div>
+
+<p id="message"></p>
+
+<button id="okButton" onclick="nextStep()">Tamam</button>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script>
+let currentStep = 1;
+let html5QrCode;
+let firstQRContent = null;
+
+function startScanning() {
+  document.getElementById('cameraButton').style.display = 'none';
+  document.getElementById('reader').style.display = 'block';
+  document.getElementById('message').textContent = "";
+  document.getElementById('message').className = "";
+
+  html5QrCode = new Html5Qrcode("reader");
+
+  html5QrCode.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: 250 },
+    qrCodeMessage => {
+      console.log("Taranan QR:", qrCodeMessage);
+
+      html5QrCode.stop().then(() => {
+        document.getElementById('reader').style.display = 'none';
+        document.getElementById('okButton').style.display = 'inline-block';
+
+        if (currentStep === 1) {
+          // 🔹 1. QR içeriğini kaydet
+          firstQRContent = qrCodeMessage;
+          document.getElementById('message').textContent = "✅ 1. QR kaydedildi: " + firstQRContent;
+          document.getElementById('message').className = "success";
+
+        } else if (currentStep === 2) {
+          // 🔹 2. QR'ı karşılaştır
+          const secondQRContent = qrCodeMessage;
+
+          if (firstQRContent === secondQRContent) {
+            document.getElementById('message').textContent = "🎉 Eşleşme başarılı! QR içerikleri aynı.";
+            document.getElementById('message').className = "success";
+          } else {
+            document.getElementById('message').textContent = "❌ Eşleşme hatası! QR içerikleri farklı.";
+            document.getElementById('message').className = "error";
+          }
+        }
+      });
+    },
+    errorMessage => {}
+  ).catch(err => console.error("Kamera başlatılamadı:", err));
+}
+
+function nextStep() {
+  document.getElementById('okButton').style.display = 'none';
+  if (currentStep === 1) {
+    currentStep = 2;
+    startScanning();
+  } else {
+    // Baştan başlat
+    currentStep = 1;
+    firstQRContent = null;
+    document.getElementById('cameraButton').style.display = 'inline-block';
+    document.getElementById('message').textContent = "";
+  }
+}
+</script>
+</body>
+</html>
