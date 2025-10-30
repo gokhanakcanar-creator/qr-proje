@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="tr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>QR Kod Doğrulama</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#13ec37",
+              "background-light": "#f6f8f6",
+              "background-dark": "#102213",
+            },
+            fontFamily: {
+              "display": ["Manrope", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark">
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark font-display group/design-root" style='font-family: Manrope, "Noto Sans", sans-serif;'>
+<main class="flex flex-col grow justify-between">
+<div class="flex flex-col">
+<div class="flex items-center justify-start p-6">
+<span class="material-symbols-outlined text-zinc-900 dark:text-white text-3xl">verified_user</span>
+</div>
+<div class="flex w-full grow @container py-3 justify-center items-center">
+<div class="w-full gap-1 overflow-hidden @[480px]:gap-2 aspect-[3/2] flex max-w-sm px-4">
+<div class="w-full bg-center bg-no-repeat bg-contain aspect-square rounded-none flex-1" data-alt="A stylized illustration showing a shield with a QR code inside it, symbolizing security and verification." style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBMclb6LI6SnBBTkOUZ0yW2tH-Svb47nR7nTruCNzOqQMNau3huROean4KSE_b_lvmATI49MTmQGzJB8BR_oQuybCVWwR2u-mrj242Xdyxbx0B3fMYuaFlqsZeJogY3fr_OL25fxrwJ2dVxpjBtmjHAmvUgWi0i-He8HUxhaXiXNFL4IeoULqRCbg_jaop44t-m2hjGoYwI_Irm9wl8jXuEyTB43rwHEE3G1xk4DlYyC6xTNiTa3kkmXxTMK33aWzrn60e-G8f2mOAc"); mask-image: radial-gradient(circle, white 60%, transparent 100%); -webkit-mask-image: radial-gradient(circle, white 60%, transparent 100%);'></div>
+</div>
+</div>
+<div class="px-4">
+<h1 class="text-zinc-900 dark:text-white tracking-tight text-[32px] font-bold leading-tight text-center pb-3 pt-6 font-display">QR Kodları Güvenle Doğrulayın</h1>
+<p class="text-zinc-600 dark:text-zinc-300 text-base font-normal leading-normal pb-3 pt-1 px-4 text-center font-display">Uygulamamız ile QR kodların gerçekliğini saniyeler içinde kontrol edin. Güvenliğinizi önemsiyoruz.</p>
+</div>
+</div>
+<div class="p-6">
+<div class="flex w-full flex-row items-center justify-center gap-3 py-5">
+<div class="h-2 w-2 rounded-full bg-primary"></div>
+<div class="h-2 w-2 rounded-full bg-primary/30"></div>
+<div class="h-2 w-2 rounded-full bg-primary/30"></div>
+</div>
+<button class="flex items-center justify-center w-full bg-primary text-zinc-900 font-bold text-base py-4 rounded-xl font-display">Devam Et</button>
+</div>
+</main>
+</div>
+</body></html>
