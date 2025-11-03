@@ -1,95 +1,157 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html class="dark" lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2 QR Kod İçerik Karşılaştırma</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>QR Kod Doğrulama</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <style>
-  body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-  #cameraButton { margin: 20px auto; padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius:5px; cursor:pointer; }
-  #cameraButton:hover { background-color: #45a049; }
-  #reader { width: 100%; max-width: 500px; margin: 0 auto; display: none; }
-  #okButton { display:none; padding: 8px 16px; margin-top:10px; background:#2196F3; color:white; border:none; border-radius:5px; cursor:pointer; }
-  #okButton:hover { background:#1976D2; }
-  #message { font-weight:bold; margin-top:15px; }
-  .success { color:green; }
-  .error { color:red; }
-</style>
-</head>
-<body>
-
-<h1>2 QR Kod İçerik Karşılaştırma</h1>
-<p>İlk QR kodu tarayın, ardından ikinciyi tarayın. İçerikleri karşılaştırılır.</p>
-
-<button id="cameraButton" onclick="startScanning()">Kamera Aç</button>
-
-<div id="reader"></div>
-
-<p id="message"></p>
-
-<button id="okButton" onclick="nextStep()">Tamam</button>
-
-<script src="https://unpkg.com/html5-qrcode"></script>
-<script>
-let currentStep = 1;
-let html5QrCode;
-let firstQRContent = null;
-
-function startScanning() {
-  document.getElementById('cameraButton').style.display = 'none';
-  document.getElementById('reader').style.display = 'block';
-  document.getElementById('message').textContent = "";
-  document.getElementById('message').className = "";
-
-  html5QrCode = new Html5Qrcode("reader");
-
-  html5QrCode.start(
-    { facingMode: "environment" },
-    { fps: 10, qrbox: 250 },
-    qrCodeMessage => {
-      console.log("Taranan QR:", qrCodeMessage);
-
-      html5QrCode.stop().then(() => {
-        document.getElementById('reader').style.display = 'none';
-        document.getElementById('okButton').style.display = 'inline-block';
-
-        if (currentStep === 1) {
-          // 🔹 1. QR içeriğini kaydet
-          firstQRContent = qrCodeMessage;
-          document.getElementById('message').textContent = "✅ 1. QR kaydedildi: " + firstQRContent;
-          document.getElementById('message').className = "success";
-
-        } else if (currentStep === 2) {
-          // 🔹 2. QR'ı karşılaştır
-          const secondQRContent = qrCodeMessage;
-
-          if (firstQRContent === secondQRContent) {
-            document.getElementById('message').textContent = "🎉 Eşleşme başarılı! QR içerikleri aynı.";
-            document.getElementById('message').className = "success";
-          } else {
-            document.getElementById('message').textContent = "❌ Eşleşme hatası! QR içerikleri farklı.";
-            document.getElementById('message').className = "error";
-          }
-        }
-      });
-    },
-    errorMessage => {}
-  ).catch(err => console.error("Kamera başlatılamadı:", err));
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;
 }
-
-function nextStep() {
-  document.getElementById('okButton').style.display = 'none';
-  if (currentStep === 1) {
-    currentStep = 2;
-    startScanning();
-  } else {
-    // Baştan başlat
-    currentStep = 1;
-    firstQRContent = null;
-    document.getElementById('cameraButton').style.display = 'inline-block';
-    document.getElementById('message').textContent = "";
-  }
+body { min-height: max(884px, 100dvh); }
+</style>
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "primary": "#13ec37",
+        "background-light": "#f6f8f6",
+        "background-dark": "#102213",
+      },
+      fontFamily: { "display": ["Manrope", "sans-serif"] },
+      borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px" },
+      keyframes: { scan: {'0%,100%':{transform:'translateY(0%)'},'50%':{transform:'translateY(190px)'}}},
+      animation: { 'scan-line':'scan 3s ease-in-out infinite'}
+    },
+  },
 }
 </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+
+<!-- Ekranları saklamak için divler -->
+<div id="screen-cover" class="flex flex-col h-screen w-full items-center justify-center">
+  <h1 class="text-2xl font-bold mb-6">QR Doğrulama</h1>
+  <button id="btn-start" class="px-6 py-3 bg-primary text-background-dark rounded-lg font-bold">Devam Et</button>
+</div>
+
+<div id="screen-step1" class="hidden flex flex-col h-screen w-full items-center justify-center p-4">
+  <h2 class="text-lg font-bold mb-4">1. QR Kodunu Tara</h2>
+  <div id="camera1" class="relative w-full max-w-sm aspect-square bg-gray-900 rounded-xl overflow-hidden mb-4 flex items-center justify-center">
+    <div class="absolute top-6 left-6 right-6 h-1 bg-primary rounded-full shadow-[0_0_15px_3px_rgba(19,236,55,0.7)] animate-scan-line"></div>
+  </div>
+  <button id="btn-scan-1" class="px-6 py-3 bg-primary text-background-dark rounded-lg font-bold">QR Kodunu Okut</button>
+</div>
+
+<div id="screen-step1-done" class="hidden flex flex-col h-screen w-full items-center justify-center p-4">
+  <div class="flex items-center justify-center bg-primary/20 rounded-full w-24 h-24 mb-4">
+    <span class="material-symbols-outlined text-primary text-3xl">check_circle</span>
+  </div>
+  <h2 class="text-xl font-bold mb-2">1. QR Kod Okundu</h2>
+  <button id="btn-next-step2" class="px-6 py-3 bg-primary text-background-dark rounded-lg font-bold">Devam Et</button>
+</div>
+
+<div id="screen-step2" class="hidden flex flex-col h-screen w-full items-center justify-center p-4">
+  <h2 class="text-lg font-bold mb-4">2. QR Kodunu Tara</h2>
+  <div id="camera2" class="relative w-full max-w-sm aspect-square bg-gray-900 rounded-xl overflow-hidden mb-4 flex items-center justify-center">
+    <div class="absolute top-6 left-6 right-6 h-1 bg-primary rounded-full shadow-[0_0_15px_3px_rgba(19,236,55,0.7)] animate-scan-line"></div>
+  </div>
+  <button id="btn-scan-2" class="px-6 py-3 bg-primary text-background-dark rounded-lg font-bold">QR Kodunu Okut</button>
+</div>
+
+<div id="screen-result" class="hidden flex flex-col h-screen w-full items-center justify-center p-4">
+  <div class="flex items-center justify-center w-48 h-48 bg-primary/20 rounded-full mb-8">
+    <span class="material-symbols-outlined text-primary text-6xl">check</span>
+  </div>
+  <h1 class="text-2xl font-bold mb-2">DOĞRU</h1>
+  <p class="text-zinc-600 dark:text-zinc-300 text-center">İki QR kod birbiriyle eşleşiyor.</p>
+  <button id="btn-restart" class="mt-6 px-6 py-3 bg-primary text-background-dark rounded-lg font-bold">Başa Dön</button>
+</div>
+
+<script>
+let qr1 = null;
+let qr2 = null;
+
+function showScreen(id){
+  document.querySelectorAll('[id^="screen"]').forEach(s=>s.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+
+function startCameraAndScan(callback){
+  const video = document.createElement('video');
+  navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}})
+    .then(stream => {
+      video.srcObject = stream;
+      video.setAttribute("playsinline", true);
+      video.play();
+
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+
+      const scan = () => {
+        if(video.readyState === video.HAVE_ENOUGH_DATA){
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          context.drawImage(video,0,0,canvas.width,canvas.height);
+          const imageData = context.getImageData(0,0,canvas.width,canvas.height);
+          const code = jsQR(imageData.data, imageData.width, imageData.height);
+          if(code){
+            stopCamera(video);
+            callback(code.data);
+            return;
+          }
+        }
+        requestAnimationFrame(scan);
+      };
+      requestAnimationFrame(scan);
+    })
+    .catch(err => console.error(err));
+}
+
+function stopCamera(video){
+  const stream = video.srcObject;
+  if(stream) stream.getTracks().forEach(track => track.stop());
+}
+
+// Başlangıç
+document.getElementById('btn-start').addEventListener('click', ()=> showScreen('screen-step1'));
+
+// 1. QR okut
+document.getElementById('btn-scan-1').addEventListener('click', ()=>{
+  startCameraAndScan((data)=>{
+    qr1 = data;
+    showScreen('screen-step1-done');
+  });
+});
+
+// Devam Et → 2. QR
+document.getElementById('btn-next-step2').addEventListener('click', ()=> showScreen('screen-step2'));
+
+// 2. QR okut
+document.getElementById('btn-scan-2').addEventListener('click', ()=>{
+  startCameraAndScan((data)=>{
+    qr2 = data;
+    if(qr1 === qr2){
+      showScreen('screen-result');
+    } else {
+      alert("QR kodlar eşleşmiyor!");
+      showScreen('screen-cover');
+    }
+  });
+});
+
+// Yeniden başlat
+document.getElementById('btn-restart').addEventListener('click', ()=>{
+  qr1 = qr2 = null;
+  showScreen('screen-cover');
+});
+</script>
+
 </body>
 </html>
